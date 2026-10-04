@@ -5,6 +5,31 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-10-05 — Branch protection configured but not yet enforced
+
+GitHub rulesets are free on **public** repositories only. On a **private** repository they need
+GitHub Pro (personal account) or Team (organization). Ours is private on the Free plan, so the
+ruleset saves but GitHub does not enforce it.
+
+**Not making the repo public.** That would enforce protection for free, but it would also expose
+`/prompts` — which `CLAUDE.md` names as the project's intellectual property, and which is the
+part of this project that actually matters. Plagiarism by other students is a real risk too.
+
+**Applied for the GitHub Student Developer Pack** (`education.github.com/pack`), which gives
+students GitHub Pro free. The existing ruleset starts enforcing automatically once Pro is
+active — it does not need to be recreated.
+
+Until then, protection is a convention rather than a mechanism: the PR template and the team
+guide both state that `main` is never pushed to directly, but GitHub will not block it.
+**This must be enforced before teammates start pushing**, which is when it stops being
+theoretical.
+
+Ruleset as configured (waiting to activate): bypass list empty, pull request required,
+required approvals 0 (raise to 1 when the team joins), dismiss stale approvals, require
+conversation resolution, block force pushes.
+
+---
+
 ## 2026-10-04 — Auto-enable RLS turned on, but migrations still declare it
 
 Turned on **Authentication -> Auto-enable RLS for new tables** on `renegade-dev`. It installs
