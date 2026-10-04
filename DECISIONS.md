@@ -5,6 +5,26 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-10-04 — Auto-enable RLS turned on, but migrations still declare it
+
+Turned on **Authentication -> Auto-enable RLS for new tables** on `renegade-dev`. It installs
+an event trigger (`ensure_rls`) that switches RLS on for every new table in the `public`
+schema. It writes no policy, so a new table starts default-deny — it fails closed, which is
+the failure mode we want.
+
+**It does not replace writing `alter table ... enable row level security` in every migration.**
+This is a _project setting_, not schema, so it does not travel with our migrations. If
+`renegade-prod` is created without the same toggle, the identical migration would produce
+tables with no RLS there — dev protected, prod wide open, and nothing to notice it. The line
+in the migration is what guarantees both databases match.
+
+**Action when `renegade-prod` is created: turn this setting on there too.**
+
+Known confusion to expect: RLS on with no policy returns `[]`, not an error. The answer is
+always "you forgot to write the policy."
+
+---
+
 ## 2026-10-04 — Models pinned, and `temperature` removed from the provider layer
 
 **Claude: `claude-sonnet-5`.** There is no "Sonnet 5.5" — the Sonnet line runs
