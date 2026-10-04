@@ -1,0 +1,29 @@
+# Line endings.
+#
+# Everyone on this team is on Windows, where Git's default is to convert files
+# to CRLF on checkout. Prettier writes LF. Left alone, those two fight: Prettier
+# rewrites a file to LF, Git converts it back to CRLF, and the next diff shows
+# every line as changed when only one line really was.
+#
+# Forcing LF everywhere ends it. All modern tooling on Windows (VS Code, Node,
+# Git Bash, Prettier) reads LF without complaint.
+
+* text=auto eol=lf
+
+# Shell scripts must be LF. A CRLF line ending inside a script can stop it
+# running at all — including .husky/pre-commit, which runs on every commit.
+*.sh        text eol=lf
+.husky/*    text eol=lf
+
+# Binary files — Git must never rewrite these.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.webp      binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.pdf       binary
+*.docx      binary
