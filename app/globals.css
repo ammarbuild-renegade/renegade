@@ -128,3 +128,28 @@
     @apply font-sans;
   }
 }
+
+/* ── Renegade brand ─────────────────────────────────────────────────────────
+   Crimson is the project's identity across the proposal, the diagrams and the
+   written material. Carrying it into the product keeps one visual family.
+   Declared for both themes so nothing resolves to an unset value.          */
+
+:root {
+  --brand: #a82b45;
+  --brand-soft: #fbedf0;
+  --brand-line: #e9b9c4;
+  --font-display: var(--font-spectral);
+}
+
+.dark {
+  --brand: #f0899e;
+  --brand-soft: #331a22;
+  --brand-line: #5c333d;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-line: var(--brand-line);
+  --font-display: var(--font-display);
+}
