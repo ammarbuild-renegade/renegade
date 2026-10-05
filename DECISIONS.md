@@ -5,6 +5,43 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-10-05 — Generation spike: PASSED. The approach works.
+
+Ran the Phase 0 generation spike against a real client profile (Shaun Brown, Studio Two).
+**Operator verdict: satisfactory.** The approach is sound; FYP-1 proceeds as scoped.
+
+Three findings worth keeping:
+
+**1. No fabrication.** The proof bank holds no real figures yet, so any number in the output
+would have been invented. The model produced none. This was the most dangerous failure mode —
+an invented "47% uplift for Hornby" is a client reputation problem, not a bug — and the
+explicit "invent nothing" rule in the prompt held.
+
+**2. The cold-start path works, and is now tested.** The spike ran with an **empty gold set**:
+voice sketch only, no past posts at all. The voice still came through. `CLAUDE.md` commits to
+this path for clients who have barely posted, and until now it was an untested assumption. It
+is no longer. This is also a good answer to the likely jury question about founders who have
+never posted.
+
+**3. Guardrails are enforceable through the prompt.** Every banned structure from the brand
+profile held, and the CTA came back in the specified style ("happy to point you at where to
+look") rather than drifting to "BOOK A CALL". Banned _structures_ — not just banned words —
+are doing real work.
+
+Two things to watch as volume grows, neither blocking:
+
+- **Swearing never appeared.** The profile says "swears sometimes, naturally". One post proves
+  nothing, but across ten the absence would mean the voice is landing too clean.
+- **One strained metaphor** ("the links are just pointing down someone else's [road]"). A
+  gold set would likely damp this — worth re-testing once real past posts exist.
+
+**The spike is not committed.** It carries a real client's brand profile, and anything committed
+stays in git history permanently even after the file is deleted. It lives locally and is
+gitignored (`scripts/spike-*.ts`). Re-run it from the local copy when a gold set becomes
+available.
+
+---
+
 ## 2026-10-05 — Branch protection configured but not yet enforced
 
 GitHub rulesets are free on **public** repositories only. On a **private** repository they need

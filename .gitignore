@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Phase 0 spikes - throwaway, and spike-generate carries real client data.
+# Anything committed stays in git history forever, even after deletion.
+scripts/spike-*.ts
