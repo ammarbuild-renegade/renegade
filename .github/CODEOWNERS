@@ -1,0 +1,19 @@
+# Code owners
+#
+# GitHub automatically requests a review from the owner of any file a pull
+# request touches. This works on every plan — it does not need branch
+# protection, so it is in effect from today.
+#
+# One line, one owner, everything: every PR comes to the lead for review.
+# When the team is further along, narrow this by path — for example giving
+# the person who owns documentation review on docs/ — rather than removing it.
+
+* @ammarbuild-renegade
+
+# Two areas stay with the lead permanently, whatever else changes below:
+#
+#   /prompts/   the instruction sheets are the project's intellectual property
+#   /supabase/  migrations change the shared database for everyone at once
+
+/prompts/   @ammarbuild-renegade
+/supabase/  @ammarbuild-renegade
