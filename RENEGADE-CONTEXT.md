@@ -77,7 +77,6 @@ visible in the product, not just in the documentation.
 4. Scheduling + direct publishing to LinkedIn
 5. Branded visual generator
 6. AI-conducted interviews — **jury-requested flagship**, bilingual status unresolved (§7)
-7. Lead magnet generator — _build last, only if time allows; agreed first thing to drop_
 
 ### Out of scope — do not propose these
 
