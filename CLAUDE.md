@@ -45,8 +45,7 @@ marked. Do not start FYP-2 work unless explicitly asked.
 **FYP-2, in build order:** Zoom integration (create meeting, pull transcript) · assisted QA
 checks · trend radar + idea bank · scheduling + **direct publishing to LinkedIn** · branded
 visual generator · AI-conducted interviews, bilingual Urdu + English (**jury-requested
-flagship**, but see below) · lead magnet generator (**build last, only if time allows** — it degrades
-gracefully and is the agreed thing to drop).
+flagship**, but see below).
 
 **Stretch, explicitly not committed:** live Zoom video embedded in-page.
 
@@ -56,6 +55,11 @@ English, so an Urdu-speaking voice agent serves no user. The fallback position t
 accept **Urdu and code-switched transcripts as input** while all output stays English — that
 is a prompt change, not a feature, and captures the point without an Urdu voice agent.
 Keep this in scope until the teacher agrees otherwise.
+
+**Cut entirely — lead magnet generator.** Removed from scope 2026-10-11. FYP-2 already
+carries Zoom, assisted QA, trend radar, publishing, the visual generator and AI interviews.
+A feature written into a proposal as "only if time allows" has one predictable outcome: the
+jury asks whether it was built and the answer is no. Better to not promise it.
 
 **Cut entirely — LinkedIn Profile Optimizer.** It required the operator to type the
 client's profile sections in by hand, and the jury objected to manual data entry. LinkedIn
@@ -300,24 +304,6 @@ Rules:
 
 **Examples beat rules.** When output is wrong, prefer adding a better example over
 adding another instruction.
-
----
-
-## Lead magnet structures (FYP-2)
-
-Two structures, defined in `/prompts/structures/`. Both follow **one section = one
-page with a hard word budget**, which keeps PDF rendering deterministic.
-
-- **Structure A — Phased Execution Roadmap.** Cover, framing block, one page per
-  phase (goal, time-boxed actions as arrows, ✅ countable checklist), investment summary.
-- **Structure B — Template / Swipe Pack.** Cover, how-to-use with legend, one page per
-  named template (context block, the copy with `{{variables}}`, bold on everything the
-  reader swaps), CTA page.
-
-**Build Structure B first** — self-contained short blocks, far lower risk than A.
-
-Titles must carry a number and a proof metric. Specific figures come from the
-Knowledge Vault and are never invented.
 
 ---
 

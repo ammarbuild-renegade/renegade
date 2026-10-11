@@ -95,9 +95,8 @@ visible in the product, not just in the documentation.
 
 ### Drop order if FYP-2 runs short
 
-1. Lead magnet generator
-2. The live Zoom video embed — transcripts arrive as files either way, so embedding is convenience, not capability
-3. The Urdu half of AI interviews — English-only still demonstrates the flagship
+1. The live Zoom video embed — transcripts arrive as files either way, so embedding is convenience, not capability
+2. The Urdu half of AI interviews — English-only still demonstrates the flagship
 
 ---
 
