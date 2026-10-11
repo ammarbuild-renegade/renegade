@@ -42,19 +42,32 @@ marked. Do not start FYP-2 work unless explicitly asked.
     already produce the transcript; we ingest the file (`.vtt`, `.txt`, `.docx`) and trigger
     insight extraction on upload. **We never transcribe audio ourselves.**
 
-**FYP-2, in build order:** Zoom integration (create meeting, pull transcript) · assisted QA
-checks · trend radar + idea bank · scheduling + **direct publishing to LinkedIn** · branded
-visual generator · AI-conducted interviews, bilingual Urdu + English (**jury-requested
-flagship**, but see below).
+**FYP-2, in build order:** meeting integration (create the meeting, pull the transcript) ·
+assisted QA checks · trend radar + idea bank · scheduling + **direct publishing to LinkedIn** ·
+branded visual generator · AI-conducted interviews (**jury-requested**, see below).
 
-**Stretch, explicitly not committed:** live Zoom video embedded in-page.
+**Stretch, explicitly not committed:** live meeting video embedded in-page.
 
-**Bilingual AI interview — pending, do not build yet.** The jury asked for Urdu + English.
-Clients are English-speaking professionals in one region and LinkedIn content ships in
-English, so an Urdu-speaking voice agent serves no user. The fallback position to negotiate:
-accept **Urdu and code-switched transcripts as input** while all output stays English — that
-is a prompt change, not a feature, and captures the point without an Urdu voice agent.
-Keep this in scope until the teacher agrees otherwise.
+**Name no meeting vendor in the proposal.** Say "meeting integration". Zoom, Google Meet and
+Teams all expose the same two things we need — create a meeting, fetch its transcript — and
+each has its own plan requirements that may change. Committing to one vendor in writing means
+a scope change if that vendor's terms move; committing to the capability does not.
+
+**Interviews — two paths, both in scope.** The human interview is the primary one and the
+product's differentiator: it produces the Voice Card, the Blueprint and the pillars. The
+AI-conducted interview is a **second path** for top-up sessions, once that foundation already
+exists — for clients who cannot book operator time every month.
+
+> The human interview builds the brand. The AI interview keeps it fed.
+
+The operator is making the case to the supervisor that the AI path serves no real user here.
+**Until that conversation concludes, both stay in scope and the proposal describes both.** If
+the supervisor agrees, the AI path is removed; if not, it is built as described.
+
+**Bilingual is a separate question.** Clients are English-speaking professionals in one region
+and LinkedIn content ships in English, so an Urdu-speaking voice agent serves no user. The
+position to negotiate: accept **Urdu and code-switched transcripts as input** while all output
+stays English — a prompt change, not a feature. Do not build Urdu speech until this is settled.
 
 **Cut entirely — lead magnet generator.** Removed from scope 2026-10-11. FYP-2 already
 carries Zoom, assisted QA, trend radar, publishing, the visual generator and AI interviews.
