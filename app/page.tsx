@@ -45,7 +45,9 @@ export default function Home() {
       {/* ── mark ─────────────────────────────────────────────────────────── */}
       <header className="flex items-baseline gap-3 py-10">
         <span className="font-display text-xl font-semibold tracking-tight">Renegade</span>
-        <span className="text-brand font-mono text-[10px] tracking-[0.18em] uppercase">FYP-1</span>
+        <span className="text-brand font-mono text-[10px] tracking-[0.18em] uppercase">
+          FYP-1 ZapAsad
+        </span>
       </header>
 
       {/* ── thesis ───────────────────────────────────────────────────────── */}
