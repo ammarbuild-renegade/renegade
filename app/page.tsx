@@ -149,6 +149,10 @@ export default function Home() {
         <p className="text-muted-foreground mt-10 font-mono text-[11.5px]">
           Next: Phase 1 — operator workspace, client records, access control.
         </p>
+
+        <p className="text-muted-foreground mt-4 font-mono text-[11px]">
+          Contributed by Asad — Renegade Development Team
+        </p>
       </section>
     </main>
   )
