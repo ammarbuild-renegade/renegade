@@ -1,0 +1,68 @@
+name: CI
+
+# Runs on every pull request into main, and on main itself.
+#
+# Why main as well as pull requests: the lead can bypass the branch ruleset and
+# push to main directly, so a check that only ran on pull requests would never
+# see those commits. Vercel deploys main, so main is exactly what must stay green.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A second push to the same branch makes the first run pointless. Cancel it
+# rather than queueing both.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    env:
+      # The build imports modules that read these at module scope, so they have
+      # to exist for `next build` to finish. They are deliberately placeholders,
+      # not repository secrets:
+      #
+      #   - nothing here connects to Supabase at build time, so a real URL buys
+      #     nothing and a real key would be printed into build logs
+      #   - secrets are not available to pull requests opened from forks, so a
+      #     workflow depending on them would fail for outside contributors
+      #
+      # The AI keys are left unset on purpose. The provider layer builds its
+      # clients lazily, so a missing key is only an error when a model is
+      # actually called — and CI never calls one. If the build ever fails for a
+      # missing AI key, that is a real bug: something is constructing a client
+      # at import time, which rule 3 in CLAUDE.md exists to prevent.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      SUPABASE_SECRET_KEY: sb_secret_placeholder
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # Resolves to the latest 24.x, which is what `engines.node` in
+          # package.json requires (">=24 <25"). Keep the two in step: if the
+          # project moves to Node 25, change both.
+          node-version: 24
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json pins and fails if the
+      # lockfile and package.json disagree. `npm install` would quietly fix such
+      # a mismatch and hide it.
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `next build` type-checks too, but this runs first because it fails in
+      # seconds with a clearer error than a build failure.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
