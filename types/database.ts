@@ -39,6 +39,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_users: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email: string
+          id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          id: string
+          name: string
+          operator_id: string
+          status: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          operator_id: string
+          status?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          operator_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operators: {
         Row: {
           created_at: string
@@ -65,7 +129,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      operator_owns_client: {
+        Args: { target_client_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
