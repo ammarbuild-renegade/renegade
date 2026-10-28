@@ -16,7 +16,7 @@ you can already clone the repo, run `npm run dev`, and see the app on localhost:
 | Migration `0002` | `clients`, `client_users`, security rules              | `supabase/migrations/` |
 | Auth pages       | Login and signup                                       | `app/(auth)/`          |
 | Workspace        | Sidebar, client switcher, client screens               | `app/(app)/`           |
-| Tests            | Three security tests                                   | `tests/`               |
+| Tests            | Four security tests                                    | `tests/`               |
 
 ---
 
@@ -59,20 +59,36 @@ a test runner. Vitest needs almost no configuration with TypeScript, where Jest 
 
 ## 0.1 Who builds what
 
-The order below matters: section 1–5 unblocks everyone else.
+**Sections 1–6 and 9 are already built, verified and merged.** Read them for context — they
+explain why the pieces you import are shaped the way they are — but do not rebuild them.
 
-| Who       | Sections | Folder they work in           | Can start                      |
-| --------- | -------- | ----------------------------- | ------------------------------ |
-| **Lead**  | 1–5, 9   | `lib/` `supabase/` `proxy.ts` | immediately                    |
-| **Dev C** | 7        | `components/`                 | immediately, against mock data |
-| **Dev B** | 8        | `app/(app)/` `components/`    | immediately, against mock data |
-| **Dev D** | 10       | `tests/` `scripts/`           | after section 5                |
+| Who       | Sections | Folder they work in           | Status                           |
+| --------- | -------- | ----------------------------- | -------------------------------- |
+| **Lead**  | 1–6, 9   | `lib/` `supabase/` `proxy.ts` | **done** — auth, policies, tests |
+| **Dev C** | 7        | `components/workspace/`       | **start now**, against real data |
+| **Dev B** | 8        | `app/(app)/`                  | **start now**, against real data |
+| **Dev D** | 10       | `tests/` `scripts/`           | unblocked                        |
 
-**Dev B and Dev C do not have to wait for auth.** Build the sidebar, the switcher and the
-client form against a hardcoded array of fake clients. When the lead's work lands, swap the
-fake array for a real query. That is one import change, not a rewrite.
+Before you start, `git pull` on `main` so you have `lib/supabase/` and `proxy.ts`. Then branch:
 
-Working in different folders is what keeps merge conflicts near zero.
+```bash
+git checkout main && git pull && git checkout -b feature/your-bit
+```
+
+**You no longer need mock data.** The original plan had Dev B and Dev C building against a
+hardcoded array because they were to work in parallel with auth. Auth finished first, so query
+the database directly — see 7.1.
+
+What is already working, so you can trust it:
+
+- Signing in and out, and a signed-out visitor being redirected to `/login`
+- `clients` and `client_users` exist, with row-level security proven by four passing tests
+- Two sample clients are seeded against the test operator account
+- An operator cannot see or modify another operator's clients — tested, not assumed
+
+Working in different folders is what keeps merge conflicts near zero. The one file you share
+is `app/(app)/layout.tsx`, created in 7.3: **Dev C should land that first**, and Dev B should
+pull before touching the `(app)` tree.
 
 ---
 
@@ -91,7 +107,7 @@ npm install -D vitest dotenv
 | Package         | Why                                                                                                                                 |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `@supabase/ssr` | Supabase auth that works with server rendering. `@supabase/supabase-js` alone cannot read or write the cookies that hold a session. |
-| `vitest`        | Test runner for the three security tests.                                                                                           |
+| `vitest`        | Test runner for the four security tests.                                                                                            |
 | `dotenv`        | Lets the tests read `.env.local`. Vitest does not load it on its own.                                                               |
 
 ### Verify
@@ -749,13 +765,18 @@ export default function SignupPage() {
 > **Do not add a link to `/signup` anywhere.** The page exists for the security tests and for
 > the demo. The product story is one operator with many clients.
 
-### 5.3 Turn off email confirmation while developing
+### 5.3 Email confirmation while developing
 
-Supabase dashboard → **Authentication** → **Sign In / Providers** → **Email** → turn
-**Confirm email** off.
+**Already done — no action needed.** Checked on the dev project 2026-10-29:
+`confirmation_sent_at` is null and new accounts come back confirmed, so **Confirm email is
+off**. For reference, the setting lives at Supabase dashboard → **Authentication** →
+**Sign In / Providers** → **Email** → **Confirm email**.
 
-Leave it on and every test account you create sits unusable until someone clicks a link in an
-inbox that does not exist. Turn it back on before the final demo.
+Left on, every test account sits unusable until someone clicks a link in an inbox that does
+not exist.
+
+> **Turn it back on before the final demo.** Nothing will remind you — the app behaves
+> perfectly with it off. Also tracked in the pre-demo checklist.
 
 ### Verify section 5
 
@@ -763,8 +784,18 @@ inbox that does not exist. Turn it back on before the final demo.
 npm run dev
 ```
 
-Open <http://localhost:3000/signup>, create an account, and confirm you are redirected to
-`/clients` (which 404s for now — expected).
+Open <http://localhost:3000/signup> and create an account. You should be redirected to
+`/clients`, which 404s until section 8 lands — expected.
+
+> **Use a real email address at a domain that can receive mail.** Supabase validates
+> deliverability and rejects anything else with `Email address "..." is invalid`, which reads
+> like a bug in the form but is not. Confirmed 2026-10-29: `example.com` is refused because it
+> publishes a **null MX** record (RFC 7505 — it declares that it accepts no mail), and a
+> domain with no MX record at all is refused too. A `+tag` on a real address works well:
+> `you+renegade-test@gmail.com` is filterable and obviously a test account.
+>
+> Note this applies to the signup **form** only. The admin API used by the section 9 tests
+> bypasses the check, which is why those tests can use `@example.com` addresses freely.
 
 Then:
 
@@ -774,6 +805,16 @@ npx supabase db query --linked "select id, email, full_name from operators;"
 
 Your new account must appear. **If `auth.users` has a row but `operators` does not**, the
 trigger did not fire — check that the signup page sends `role: 'operator'`.
+
+To check both halves at once:
+
+```bash
+npx supabase db query --linked "select email, email_confirmed_at is not null as confirmed, raw_user_meta_data->>'role' as role from auth.users order by created_at desc limit 3;"
+```
+
+`role` must read `operator`. If it is null, the signup page is not sending the metadata and no
+operator row will ever be created — every screen then comes back empty with no error to
+explain it.
 
 ---
 
@@ -799,22 +840,45 @@ app/
 
 ## 7. The workspace shell and client switcher
 
-**Dev C.** Start now with mock data; wire it to the database once section 5 is merged.
+**Dev C.** Query the `clients` table directly — see 7.1 before you start.
 
-### 7.1 Start with fake data
+### 7.1 Skip the mock data
 
-Create `components/workspace/mock-clients.ts`:
+> **This step is no longer needed. Do not create a mock file.**
+>
+> It existed because this section was written to run _in parallel_ with the lead's auth work.
+> Sections 1–5 are finished and merged, so the real thing is already there: auth works, the
+> `clients` table exists with its policies, and two sample clients are seeded against the
+> test operator account.
+>
+> Query `clients` directly. That removes a throwaway file, removes the swap step, and removes
+> the risk of mock data reaching a demo.
 
-```typescript
-/** TEMPORARY. Delete once the real query lands. */
-export const MOCK_CLIENTS = [
-  { id: '11111111-1111-1111-1111-111111111111', name: 'Shaun Brown', company: 'Studio Two' },
-  { id: '22222222-2222-2222-2222-222222222222', name: 'Dana Clark', company: 'Northwind' },
-]
+You need two things from the lead before this section runs:
+
+1. `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in your `.env.local`.
+   Both are public-safe. You do **not** need the secret key for this section.
+2. The test operator credentials. Nothing renders until you are signed in — `proxy.ts`
+   redirects a signed-out visitor to `/login`.
+
+Two clients are already in the database, so the switcher has something to switch between
+without waiting for Dev B's create form:
+
+```
+Sample Founder One — Northside Labs
+Sample Founder Two — Harbour & Co
 ```
 
-Build the sidebar and switcher against this. The shape matches the real `clients` row, so
-swapping it later changes one import.
+**If your list comes back empty, run this before debugging your query:**
+
+```bash
+npx tsx scripts/check-client-visibility.ts
+```
+
+It signs in as the test operator and prints exactly what the database will return. This
+matters because row-level security hiding a row throws **no error and makes no failed
+request** — the list is simply empty, so there is nothing in the console or the network tab
+to find. The script separates "my query is wrong" from "the rows are hidden from me".
 
 ### 7.2 The switcher
 
@@ -912,7 +976,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
 ## 8. Client list and create form
 
-**Dev B.** Also start against `MOCK_CLIENTS`.
+**Dev B.** Query `clients` directly — the mock step in 7.1 is skipped, and the same two
+prerequisites apply: the two public env values in `.env.local`, and the test operator
+credentials to sign in with. Two sample clients are already seeded, so 8.1 has rows to render
+before you build the form in 8.2.
+
+If your list is empty, run `npx tsx scripts/check-client-visibility.ts` before debugging the
+query — see the note at the end of 7.1 for why.
 
 ### 8.1 The list
 
@@ -1230,6 +1300,16 @@ leak, not a test problem.
 > Each run creates and deletes two accounts in the **dev** project. Never point these tests at
 > `renegade-prod`.
 
+> **These tests do not run in CI, and that is deliberate.** They need `SUPABASE_SECRET_KEY`,
+> and the CI workflow holds only placeholder values — repository secrets are not available to
+> pull requests opened from forks on a public repo, so a workflow depending on them would fail
+> for any outside contributor.
+>
+> The consequence is that **nothing stops someone merging a broken policy.** CI proves the
+> code compiles; only `npm test` proves the data is isolated. Run it locally before merging
+> anything that touches a migration or a policy. `CLAUDE.md` makes the first of these tests
+> mandatory — which means a person has to remember to run it.
+
 ---
 
 ## 10. End-to-end check
@@ -1267,19 +1347,22 @@ Step 7 is the whole point of Phase 1. Step 8 is why the client id is in the URL.
 
 ## 12. Troubleshooting
 
-| What you see                                           | What is wrong                                                                                                                                    |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/c/anything` 404s instead of redirecting to `/login`  | `proxy.ts` is not running. Check the filename and that the export is named `proxy`, not `middleware`.                                            |
-| Logged out at random, every few requests               | `updateSession` returned a new `NextResponse` instead of the `supabaseResponse` that `setAll` built.                                             |
-| `cookies() should be awaited`                          | Next 15+ made it async. `const cookieStore = await cookies()`.                                                                                   |
-| Every query returns `[]`, no error                     | RLS is on with no matching policy. This is the most common Phase 1 confusion, and it looks exactly like "the data did not save".                 |
-| `infinite recursion detected in policy`                | A policy on `clients` references `client_users` and vice versa without the `operator_owns_client` helper. The helper must be `security definer`. |
-| Signup works but every screen is empty                 | The `operators` row was not created. Check that signup sends `role: 'operator'` in `options.data`.                                               |
-| `new row violates row-level security policy` on insert | `operator_id` does not match `auth.uid()`. Set it from the session, not from the form.                                                           |
-| Tests: `Invalid API key`                               | `SUPABASE_SECRET_KEY` missing from `.env.local`, or `tests/setup.ts` is not loading it.                                                          |
-| Tests: `User already registered`                       | A previous run crashed before `afterAll`. Delete the leftover `rls-a-*` / `rls-b-*` users in the Supabase dashboard.                             |
-| `Email not confirmed` on login                         | Turn off **Confirm email** in the Supabase dashboard while developing (section 5.3).                                                             |
-| `params.clientId` is undefined                         | `params` is a Promise in Next 15+. `const { clientId } = await params`.                                                                          |
+| What you see                                                       | What is wrong                                                                                                                                                                                        |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/c/anything` 404s instead of redirecting to `/login`              | `proxy.ts` is not running. Check the filename and that the export is named `proxy`, not `middleware`.                                                                                                |
+| Logged out at random, every few requests                           | `updateSession` returned a new `NextResponse` instead of the `supabaseResponse` that `setAll` built.                                                                                                 |
+| `cookies() should be awaited`                                      | Next 15+ made it async. `const cookieStore = await cookies()`.                                                                                                                                       |
+| Every query returns `[]`, no error                                 | RLS is on with no matching policy, or you are signed out. The most common Phase 1 confusion — it looks exactly like "the data did not save". Run `npx tsx scripts/check-client-visibility.ts` first. |
+| Client list empty but the rows exist in the dashboard              | The dashboard reads as admin and ignores RLS; your app does not. Same script as above.                                                                                                               |
+| `Email address "..." is invalid` on signup                         | Supabase validates deliverability. The domain has no usable MX record — `example.com` publishes a null MX. Use a real address with a `+tag`.                                                         |
+| `npm run build` fails: `Error occurred prerendering page "/login"` | Something below that route calls `useSearchParams` without a `<Suspense>` boundary above it. `npm run dev` will not show this.                                                                       |
+| `infinite recursion detected in policy`                            | A policy on `clients` references `client_users` and vice versa without the `operator_owns_client` helper. The helper must be `security definer`.                                                     |
+| Signup works but every screen is empty                             | The `operators` row was not created. Check that signup sends `role: 'operator'` in `options.data`.                                                                                                   |
+| `new row violates row-level security policy` on insert             | `operator_id` does not match `auth.uid()`. Set it from the session, not from the form.                                                                                                               |
+| Tests: `Invalid API key`                                           | `SUPABASE_SECRET_KEY` missing from `.env.local`, or `tests/setup.ts` is not loading it.                                                                                                              |
+| Tests: `User already registered`                                   | A previous run crashed before `afterAll`. Delete the leftover `rls-a-*` / `rls-b-*` users in the Supabase dashboard.                                                                                 |
+| `Email not confirmed` on login                                     | **Confirm email** has been switched back on in the dashboard. It is off on the dev project (section 5.3).                                                                                            |
+| `params.clientId` is undefined                                     | `params` is a Promise in Next 15+. `const { clientId } = await params`.                                                                                                                              |
 
 ---
 
