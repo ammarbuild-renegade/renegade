@@ -488,8 +488,29 @@ All three tables — `clients`, `client_users`, `operators` — must show `rowse
 npx supabase db query --linked "select tablename, policyname, cmd from pg_policies where schemaname='public' order by tablename;"
 ```
 
-You should see six policies. If any table has RLS on but **no** policy, every query against it
-returns an empty list with no error — the single most confusing failure in this project.
+You should see **seven** policies:
+
+| Table          | Policies                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `clients`      | `operator manages own clients`, `client user reads own client`                               |
+| `client_users` | `operator manages client logins`, `client user reads own row`                                |
+| `operators`    | `operators read own row`, `operators update own row` (from 0001), `operator inserts own row` |
+
+Five are new in this migration; the two `operators` select/update policies came from 0001.
+
+If any table has RLS on but **no** policy, every query against it returns an empty list with
+no error — the single most confusing failure in this project.
+
+Worth confirming the two helper functions came out right, because they are the actual security
+control rather than just supporting code:
+
+```bash
+npx supabase db query --linked "select proname, prosecdef, proconfig from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('operator_owns_client','handle_new_user');"
+```
+
+Both must show `prosecdef: true` **and** `search_path=public` in `proconfig`. A SECURITY
+DEFINER function without a pinned `search_path` is a privilege-escalation hole, not a style
+problem.
 
 Then open `types/database.ts` and confirm `clients` and `client_users` appear.
 
@@ -501,19 +522,37 @@ Then open `types/database.ts` and confirm `clients` and `client_users` appear.
 
 ### 5.1 Login
 
-Create `app/(auth)/login/page.tsx`:
+Create `app/(auth)/login/page.tsx`.
+
+> **The form is a separate component wrapped in `<Suspense>`, and that is not optional.**
+> `useSearchParams` reads the URL, so the component calling it cannot be prerendered.
+> Without a Suspense boundary above it, `npm run dev` works fine and `npm run build`
+> fails with `Error occurred prerendering page "/login"` — a message that never
+> mentions search params. Verified against the Next 16 docs shipped in
+> `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md`.
 
 ```tsx
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 
-export default function LoginPage() {
+/**
+ * The form is split out and wrapped in Suspense below because it calls
+ * useSearchParams, which reads the URL. A component that reads the URL cannot
+ * be prerendered, and without a Suspense boundary above it the whole route
+ * fails the production build - `next build` errors with "Error occurred
+ * prerendering page /login", which does not mention search params at all.
+ *
+ * With the boundary, the heading prerenders as static HTML and only the form
+ * is client-rendered.
+ */
+function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const [email, setEmail] = useState('')
@@ -542,41 +581,66 @@ export default function LoginPage() {
   }
 
   return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+      </div>
+
+      {error && <p className="text-destructive text-sm">{error}</p>}
+
+      <Button type="submit" disabled={busy}>
+        {busy ? 'Signing in…' : 'Sign in'}
+      </Button>
+    </form>
+  )
+}
+
+/** Same shape as the form, so the layout does not jump when it loads. */
+function LoginFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Skeleton className="h-4 w-12" />
+        <Skeleton className="h-9 w-full" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-9 w-full" />
+      </div>
+      <Skeleton className="h-9 w-full" />
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
       <h1 className="font-display mb-1 text-2xl font-semibold">Sign in</h1>
       <p className="text-muted-foreground mb-8 text-sm">Renegade operator access.</p>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-        </div>
-
-        {error && <p className="text-destructive text-sm">{error}</p>}
-
-        <Button type="submit" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
-        </Button>
-      </form>
+      <Suspense fallback={<LoginFormSkeleton />}>
+        <LoginForm />
+      </Suspense>
     </main>
   )
 }
@@ -1017,7 +1081,13 @@ export default async function ClientLayout({
 
 ### 9.1 Configure Vitest
 
-Create `vitest.config.ts`:
+Create `vitest.config.mts`:
+
+> **The `.mts` extension matters.** With a plain `.ts` the file is loaded as CommonJS while
+> containing ESM syntax, and Vite prints a deprecation warning saying this will stop working
+> in a future major version. The alternative — adding `"type": "module"` to `package.json` —
+> would change module resolution for the whole Next.js app, which is not worth it for one
+> config file.
 
 ```typescript
 import { defineConfig } from 'vitest/config'
@@ -1131,8 +1201,10 @@ describe('row-level security on clients', () => {
 
   it('does not let another operator write to it', async () => {
     const b = await signedInAs(emailB)
-    const { error } = await b.from('clients').update({ name: 'hijacked' }).eq('id', clientOfA)
+    await b.from('clients').update({ name: 'hijacked' }).eq('id', clientOfA)
 
+    // The update reports no error - it simply matches no rows, because the row
+    // is invisible to B. Proving it failed means reading the row back as admin.
     const { data: check } = await admin.from('clients').select('name').eq('id', clientOfA).single()
     expect(check?.name).toBe('Operator A client')
   })
