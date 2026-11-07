@@ -5,6 +5,65 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-11-07 — `applications` has no `client_id`. Deliberate exception to rule 1.
+
+Rule 1 in `CLAUDE.md` says every table carries `client_id` and no query runs without client
+scoping. **`applications` does not, and cannot.**
+
+An application arrives from a stranger through a public form. There is no client at that point
+— creating one is what _accepting_ the application does. A `client_id` column would have to be
+null for every row that matters, which is worse than not having it: a null foreign key invites
+code that forgets to check.
+
+Instead the row gains `converted_client_id` on acceptance, pointing at the client created from
+it. Before acceptance the application belongs to nobody; after, the link is explicit.
+
+**How it is scoped instead.** The policy checks that the caller is _an operator at all_, rather
+than which clients they own:
+
+```sql
+using ( exists (select 1 from operators where id = auth.uid()) )
+```
+
+That is weaker than every other policy in the project, and it is only acceptable because this
+is a single-operator system — settled in Phase 1, where multi-operator support was explicitly
+dropped. **If a second operator is ever added, this policy is the first thing that breaks**:
+every operator would see every application. The fix at that point is an `assigned_operator_id`
+column, not a patch to the policy.
+
+Every other table in migration 0003 — `onboarding_tokens`, `source_documents`, `brand_kits` —
+carries `client_id` and scopes through `operator_owns_client()` as normal.
+
+**Why this is written down.** A table missing `client_id` looks exactly like someone forgetting
+rule 1. Without this entry the right reaction to finding it is "that's a bug", and the wrong
+fix — adding a nullable `client_id` — would be easy to make.
+
+---
+
+## 2026-11-07 — Phase 2 schema: three choices that are not obvious from the SQL
+
+**pgvector lives in the `extensions` schema, and the column type is fully qualified.**
+`pgcrypto`, `uuid-ossp` and `pg_stat_statements` were already installed there, so a bare
+`create extension vector;` would have put it in `public` and broken the convention. The column
+is declared `extensions.vector(1536)` rather than `vector(1536)` because the `postgres` role
+has `extensions` on its `search_path` but `authenticated` does not — the unqualified form
+resolves during the migration and is fragile afterwards.
+
+**1536 dimensions, matching `text-embedding-3-small`'s default.** Verified against the live
+column rather than taken on trust: a 1536-element vector inserts, a 10-element one is rejected
+with `expected 1536 dimensions, not 10`. Changing the embedding model means changing this
+column **and re-embedding everything already stored** — the dimension is a contract between the
+two, not a setting on either.
+
+**The storage policy guards its uuid cast with a regex.** Files are stored at
+`<client_id>/<filename>`, so the policy casts the first path segment to `uuid`. That cast
+_raises_ on a malformed string, and an error inside a policy fails the entire query rather than
+hiding a single row — so one badly-named object would break every file listing for everyone.
+Only our own code writes to this bucket, but a security policy should not quietly depend on
+that being true forever.
+
+---
+
 ## 2026-11-07 — Phase 1 complete. The security decisions behind it.
 
 The end-to-end check in `docs/PHASE-1-BUILD.md` section 10 passed in full, including the two
