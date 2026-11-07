@@ -7,14 +7,15 @@ in month six nobody remembers why something was decided in month one.
 
 ## 2026-10-05 — Generation spike: PASSED. The approach works.
 
-Ran the Phase 0 generation spike against a real client profile (Shaun Brown, Studio Two).
+Ran the Phase 0 generation spike against a real client profile, held locally and deliberately
+never committed (see the note at the end of this entry).
 **Operator verdict: satisfactory.** The approach is sound; FYP-1 proceeds as scoped.
 
 Three findings worth keeping:
 
 **1. No fabrication.** The proof bank holds no real figures yet, so any number in the output
 would have been invented. The model produced none. This was the most dangerous failure mode —
-an invented "47% uplift for Hornby" is a client reputation problem, not a bug — and the
+an invented "47% uplift for &lt;named brand&gt;" is a client reputation problem, not a bug — and the
 explicit "invent nothing" rule in the prompt held.
 
 **2. The cold-start path works, and is now tested.** The spike ran with an **empty gold set**:
