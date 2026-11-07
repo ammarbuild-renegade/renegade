@@ -24,7 +24,7 @@ table, row-level security and the three Supabase clients already exist.
 
 ---
 
-## 0. Five decisions already taken
+## 0. Six decisions already taken
 
 Settled before this guide. Recorded so nobody relitigates them mid-build.
 
@@ -64,6 +64,16 @@ silently fails to arrive would otherwise strand a real client with no way forwar
 `prompts/fit-scoring.md` already says this and it is worth repeating. Self-reported revenue is
 unreliable, and a model must not turn away business on it. The $5,000 threshold **flags** an
 application; a human decides.
+
+### The scheduling link is a link, not an integration
+
+Onboarding ends with a button to the operator's own scheduling page, and an endpoint that
+records that the client booked. No API call, no webhook, no OAuth, no vendor SDK.
+
+**If asked whether this is the FYP-2 meeting integration: it is not.** That means _creating_
+the meeting and _pulling the transcript_ programmatically. This is a text column holding a URL
+and an anchor tag pointing at it. Section 8.3 has the full reasoning, including why a webhook
+would have been the wrong choice.
 
 ### `applications` is the one table without `client_id`
 
@@ -781,31 +791,186 @@ Each reason gets its own message. "Expired" and "already completed" are differen
 different next steps, and telling a client "invalid link" when they simply finished it last week
 is a support conversation you did not need to have.
 
-### 8.2 The four sections
+### 8.2 The questions
 
-From `CLAUDE.md`, and the wording matters as much as the fields:
+**These are the operator's real questions, from the onboarding document already sent to paying
+clients. Use this wording.** It has been used with real founders and it works; invented
+phrasing will not be better.
 
-1. **Audience** — dream client, job titles, industry, company size, **who they do NOT want to attract**
-2. **Voice & vibe** — how a close friend would describe them, 3–5 words for how they want to come
-   across, communication-style checkboxes (swearing, casual, authority-led, funny, storytelling,
-   emoji), words they always use, words they hate, creators they admire, topics off limits
-3. **Goals** — why now, the one thing LinkedIn should do for them, 90-day success, dream
-   connections, time available per week
-4. **The offer** — what they sell and to whom
+#### Who owns which field
 
-Plus the required **past-posts upload**, 5–10 posts.
+The application already captured name, email, company and LinkedIn URL. **Do not ask again** —
+re-asking signals that the first form went nowhere.
 
-> **Keep the tone informal.** "There are no wrong answers, write however you talk." Messy honest
-> answers produce a better voice sketch than polished ones — this is a product decision, not a
-> copywriting one.
+| Field                              | Asked by   |
+| ---------------------------------- | ---------- |
+| Name, email, company, LinkedIn URL | `/apply`   |
+| Monthly revenue                    | `/apply`   |
+| Website                            | onboarding |
+| Everything in sections 1–4 below   | onboarding |
 
-Save answers as one `source_documents` row with `type: 'questionnaire'` and the answers as JSON
+Pre-fill the header block from the application and show it read-only, so the client can see we
+already have it.
+
+#### The opening panel
+
+Show this before the first question, near-verbatim:
+
+> **How this works**
+>
+> This doc helps us understand YOU so we can build your LinkedIn presence the right way. There
+> are no wrong answers. Write however you talk. The messier and more honest, the better.
+>
+> If you get stuck on a question, just skip it. We'll figure it out together on our call.
+
+> **That last line is load-bearing**, not filler. A long form with no escape hatch gets
+> abandoned at the first hard question. Telling someone they can skip one keeps them moving, and
+> a partly-finished questionnaire is worth far more than none.
+
+#### Section 1 — Logistics
+
+- **What's the best way to reach you?** _Slack, email, text, WhatsApp, etc._
+
+That is the whole section. The operator's existing document also asks where to share drafts for
+review — **drop it.** The answer is now "in Renegade", and asking undermines the product.
+
+> **Do not collect LinkedIn credentials.** The operator's current document asks for them, for
+> clients who also buy account management. That is a different service and it is out of scope
+> here — see `CLAUDE.md`. Publishing in FYP-2 happens through the member's own OAuth grant, so
+> we never need, ask for, or store a password.
+
+#### Section 2 — Your audience
+
+_Who are we trying to reach? The more specific, the better your content will land._
+
+- **Who do you MOST want to reach on LinkedIn?** _Think about the person who would DM you and
+  say "I need your help."_
+- **What's their job title?** _List a few. e.g. Executive Director, Founder, Marketing Manager,
+  Ops Director._
+- **What industry or space are they in?**
+- **How big is their company?** _e.g. 5–50 people, solo founder, 100+ employees._
+- **Who do you NOT want to attract?** _Wrong-fit clients, industries, or types of people. Be
+  blunt._
+
+#### Section 3 — Your voice and vibe
+
+_This helps us write content that sounds like YOU, not a robot._
+
+- **How would your best friend describe you?** _e.g. "Direct, a little nerdy, makes everything
+  sound simple."_
+- **Pick 3–5 words for how you want to come across.** _e.g. approachable, expert, bold,
+  thoughtful, no-BS, warm, funny, serious._
+- **Communication style** — checkboxes, tick all that apply:
+  - I swear sometimes and that's fine
+  - Casual and conversational
+  - Authority-led
+  - Funny / witty when possible
+  - Storytelling and personal
+  - I use emojis
+- **Any words or phrases you always use?** _Catchphrases, industry terms you love, words that
+  feel like "you."_
+- **Any words or phrases you HATE?** _Things that make you cringe. Words that feel fake or
+  overused._
+- **Name 2–3 LinkedIn creators you like, and why** — **plus a post or two from each.**
+- **Anything you absolutely do NOT want to post about?** _Off-limits topics, personal stuff,
+  politics, etc._
+
+> **Ask for the creators' actual posts, not just their names.** The operator's document asks
+> only for names and profile links. A profile link gives the system nothing it can read — we
+> need the text, stored as `reference_post`. This is the one place the platform should ask for
+> more than the document does.
+
+#### Section 4 — Goals and success
+
+_What does winning look like for you?_
+
+- **Why are you investing in your LinkedIn personal brand right now?** _What happened or what
+  changed that made this a priority?_
+- **What's the #1 thing you want LinkedIn to do for you?** _e.g. get leads, build authority,
+  grow network, recruit talent, get speaking gigs._
+- **How will you know this is working? What does success look like in 90 days?**
+- **Are there specific people you want to connect with?** _Names, companies, types of people._
+- **Are there LinkedIn groups, events or communities you're part of?**
+- **How much time can you realistically spend on LinkedIn each week?** _Be honest. 15 min/day?
+  30 min? 1 hour?_
+
+> **The operator's document also asks "any specific metrics you care about?" — leave it out.**
+> Post analytics is out of scope, and `r_member_postAnalytics` is partner-gated so it cannot
+> come back later. Asking a client which numbers matter to them and then never reporting one is
+> a promise the product cannot keep. The 90-day success question already captures the intent.
+
+#### Section 5 — The offer
+
+- **What do you sell, and to whom?**
+
+Not in the operator's current document, and needed: the R3 engine's **Revenue** pillar has
+nothing to aim at without it.
+
+#### The uploads
+
+- **Your own past posts — 5 to 10. Required.**
+- Posts from the creators you admire — optional, stored separately.
+
+> **This is the most important input in the system and the operator's document does not ask for
+> it at all.** The gold set is built only from the client's own posts. Without them the Voice
+> Card is guessing, and the voice-match score in Phase 6 has nothing to measure against. Make it
+> required, and say why on the form: _"These teach the system how you actually write."_
+
+Save the answers as one `source_documents` row with `type: 'questionnaire'`, the answers as JSON
 in `content`. Mark the token used in the same request.
 
-### 8.3 The submit handler
+### 8.3 Booking the first interview
+
+After submitting, the client lands on a confirmation screen with a **scheduling link**.
+
+Add to migration 0003:
+
+```sql
+alter table operators add column booking_url text;
+alter table clients  add column interview_booked_at timestamptz;
+```
+
+The operator pastes their scheduling page URL once, in settings. The confirmation screen shows
+it as a button: **"Book your first interview"**.
+
+#### How Renegade knows they booked
+
+It doesn't, by itself — the booking happens entirely on the operator's scheduling tool. So
+there is one endpoint, `/onboarding/<token>/booked`, that stamps `interview_booked_at`, and
+**two ways to reach it**:
+
+1. **The client confirms.** The confirmation screen says _"Once you've booked, click here"_.
+   Always works, with any tool, on any plan.
+2. **The scheduling tool redirects there.** Most booking tools can send the invitee to a URL
+   after booking. If the operator's tool and plan support it, point it at this endpoint and the
+   stamp happens automatically.
+
+Same endpoint either way, so path 2 is a free upgrade rather than a dependency. The operator can
+also set or clear the status by hand on the client record.
+
+> **Why not a webhook or an API call?** Because then the feature only works on one vendor, on
+> one plan tier. Calendly's post-booking redirect, for instance, is documented but reported by
+> some sources to need a paid plan — and `CLAUDE.md` is explicit that committing to a vendor
+> means a scope change when that vendor's terms move. A link plus a confirm button depends on
+> nothing.
+
+> **This is not the FYP-2 meeting integration.** That means _creating_ the meeting and _pulling
+> the transcript_ through an API. This is a text column and an anchor tag. Keep the field named
+> `booking_url` and describe it as a "scheduling link" in any write-up — never as a vendor name,
+> and never as "integration".
+
+`interview_booked_at` also gives the operator a real queue: _onboarded but not yet booked_ is
+exactly the list worth chasing.
+
+### 8.4 The submit handler
 
 `app/api/onboarding/[token]/route.ts`, following section 3: validate, check the token, write
 with the admin client, set `used_at`.
+
+A second handler, `app/api/onboarding/[token]/booked/route.ts`, stamps `interview_booked_at` on
+the client. It must still work when the token is already used — the client books _after_
+submitting, so `used_at` will always be set by then. Check only that the token exists and
+resolves to a client.
 
 ---
 
@@ -898,10 +1063,16 @@ By hand, before calling Phase 2 done.
 7. Complete it, uploading two past posts and one reference post.
 8. Check `source_documents`: one `questionnaire`, two `past_post`, one `reference_post`, all on
    the right `client_id`.
-9. **Open the same onboarding link again. It must be refused as already used.**
-10. Sign in as a second operator. The new client's workspace URL must 404.
+9. On the confirmation screen, the **scheduling link** appears. Click _"Once you've booked,
+   click here"_ and confirm `clients.interview_booked_at` is now set.
+10. **Open the same onboarding link again. It must be refused as already used.**
+11. Sign in as a second operator. The new client's workspace URL must 404.
 
-Step 9 is why the token is single use. Step 10 is Phase 1's guarantee still holding.
+Step 10 is why the token is single use. Step 11 is Phase 1's guarantee still holding.
+
+> Step 9 works with no scheduling account at all — put any URL in `operators.booking_url` to
+> test it. The confirm button is the path that always exists; a redirect from the booking tool
+> is the optional upgrade.
 
 ---
 
@@ -915,7 +1086,11 @@ Step 9 is why the token is single use. Step 10 is Phase 1's guarantee still hold
 - [ ] Under-$5,000 applications are flagged, not auto-rejected
 - [ ] Accepting creates the client, the token, and shows the link on screen
 - [ ] The onboarding form works with no login, and refuses used or expired tokens
+- [ ] The questionnaire uses the operator's own wording, and does not re-ask what `/apply` captured
+- [ ] Past posts are **required**; reference posts ask for the posts, not just creator names
 - [ ] Past posts and reference posts are stored with different `type` values
+- [ ] The confirmation screen shows the scheduling link, and confirming stamps `interview_booked_at`
+- [ ] No question asks for LinkedIn credentials, and none promises a metric we do not report
 - [ ] Uploads land under `<client_id>/` in a private bucket
 - [ ] `npm test` passes, including the isolation test
 - [ ] Decisions recorded in `DECISIONS.md`, including the `applications` exception to rule 1
