@@ -5,6 +5,54 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-11-07 — Phase 1 complete. The security decisions behind it.
+
+The end-to-end check in `docs/PHASE-1-BUILD.md` section 10 passed in full, including the two
+steps that matter: a second operator gets a **404** on the first operator's client URL, and two
+tabs each keep their own client across a refresh.
+
+Six choices worth recording, because each one looks like a style preference and is not.
+
+**1. `operator_owns_client` is `SECURITY DEFINER` with `search_path` pinned.**
+The policy on `clients` has to consult `client_users`, and the policy on `client_users` has to
+consult `clients`. Written directly that recurses infinitely and every query fails. A
+`SECURITY DEFINER` function does not have row-level security applied inside it, which breaks
+the loop. The pinned `search_path` is not decoration: without it a caller can point
+`search_path` at a schema they control and have the function read their table instead of ours.
+
+**2. Queries do not filter by `operator_id`, deliberately.**
+The database policy already restricts rows to the signed-in operator. Adding `.eq('operator_id',
+…)` in the query as well would mean a broken policy still produced a correct-looking screen —
+the bug would be hidden rather than exposed. The tests are what prove the policy works, so the
+application code must not quietly compensate for it.
+
+**3. `operator_id` on insert comes from the session, never the form.**
+A hidden form field would let anyone post another operator's id. The policy's `with check`
+clause would reject it, but relying on that alone means one careless policy edit opens a hole.
+Two independent controls, not one.
+
+**4. An inaccessible client returns 404, not 403.**
+A client belonging to another operator is invisible under row-level security, so the query
+returns nothing and the route calls `notFound()`. A 403 would confirm that the id is real,
+which is itself a disclosure. "Not found" and "not yours" must be indistinguishable.
+
+**5. The auth check lives in the layout, not only in `proxy.ts`.**
+`proxy.ts` does redirect signed-out visitors, so the layout check looks redundant. Next's own
+documentation describes Proxy as an _optimistic_ check and explicitly not an authorisation
+layer. The layout is where the guard belongs; the proxy is a fast path in front of it.
+
+**6. The active client is a URL segment, not session state.**
+`/c/<clientId>` means two tabs can hold two different clients at once, links are shareable, and
+there is no server-side "current client" to fall out of sync. Verified: two tabs, two clients,
+both survive a refresh.
+
+**Known gap:** the four row-level-security tests cannot run in CI. They need
+`SUPABASE_SECRET_KEY`, and repository secrets are not available to pull requests from forks on
+a public repo. CI proves the code compiles; only `npm test`, run locally, proves the data is
+isolated. Anything touching a migration or a policy must be tested by hand before merging.
+
+---
+
 ## 2026-10-05 — Generation spike: PASSED. The approach works.
 
 Ran the Phase 0 generation spike against a real client profile, held locally and deliberately
