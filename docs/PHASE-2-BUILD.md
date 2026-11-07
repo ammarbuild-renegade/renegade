@@ -793,9 +793,37 @@ is a support conversation you did not need to have.
 
 ### 8.2 The questions
 
-**These are the operator's real questions, from the onboarding document already sent to paying
-clients. Use this wording.** It has been used with real founders and it works; invented
-phrasing will not be better.
+**A stepped form — one section per screen, progress saved as they go.** Five short screens plus
+the uploads, not one long scroll. On a phone the single-page version is a wall, and the abandon
+rate on long forms is real.
+
+**The wording below is the operator's own, from the onboarding document already sent to paying
+clients.** It has been used with real founders. Do not improve it.
+
+#### The form is deliberately shorter than that document
+
+Only what the system needs **before the first interview** is asked here. The rest is covered on
+the call.
+
+| Asked in the form                                 | Asked on the call                              |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Audience, and who to avoid                        | How a close friend would describe them         |
+| What they sell, and to whom                       | The 3–5 words for how they want to come across |
+| Why now, the #1 goal, 90-day success              | Communication-style checkboxes                 |
+| Words they hate, topics off limits                | Words they always use                          |
+| Best way to reach them                            | Which creators they admire, and why            |
+| Past posts (required), creators' posts (optional) | Dream connections, groups, time per week       |
+
+> **Why the voice questions moved to the call.** Asking someone to describe their own voice _in
+> writing_ returns the voice they aspire to, not the one they have — "professional yet
+> approachable", every time. On a call you simply hear the real one. That is this product's
+> premise applied to its own intake form.
+>
+> **Why the guardrails did not.** "Words you hate" and "topics off limits" look like voice
+> questions but are constraints, and people answer those concretely in writing. They also have
+> to exist before anything is generated: the banned list is a hard rule in the Voice Card, and
+> an off-limits topic discovered during the call is one the system may already have drafted
+> around.
 
 #### Who owns which field
 
@@ -807,14 +835,14 @@ re-asking signals that the first form went nowhere.
 | Name, email, company, LinkedIn URL | `/apply`   |
 | Monthly revenue                    | `/apply`   |
 | Website                            | onboarding |
-| Everything in sections 1–4 below   | onboarding |
+| Everything in the steps below      | onboarding |
 
 Pre-fill the header block from the application and show it read-only, so the client can see we
 already have it.
 
-#### The opening panel
+#### Before step 1 — the opening panel
 
-Show this before the first question, near-verbatim:
+Show this once, before the first question, near-verbatim:
 
 > **How this works**
 >
@@ -823,23 +851,10 @@ Show this before the first question, near-verbatim:
 >
 > If you get stuck on a question, just skip it. We'll figure it out together on our call.
 
-> **That last line is load-bearing**, not filler. A long form with no escape hatch gets
-> abandoned at the first hard question. Telling someone they can skip one keeps them moving, and
-> a partly-finished questionnaire is worth far more than none.
+> **That last line is load-bearing**, not filler. A form with no escape hatch gets abandoned at
+> the first hard question, and now that there is a call to defer to, it is literally true.
 
-#### Section 1 — Logistics
-
-- **What's the best way to reach you?** _Slack, email, text, WhatsApp, etc._
-
-That is the whole section. The operator's existing document also asks where to share drafts for
-review — **drop it.** The answer is now "in Renegade", and asking undermines the product.
-
-> **Do not collect LinkedIn credentials.** The operator's current document asks for them, for
-> clients who also buy account management. That is a different service and it is out of scope
-> here — see `CLAUDE.md`. Publishing in FYP-2 happens through the member's own OAuth grant, so
-> we never need, ask for, or store a password.
-
-#### Section 2 — Your audience
+#### Step 1 — Your audience
 
 _Who are we trying to reach? The more specific, the better your content will land._
 
@@ -852,35 +867,14 @@ _Who are we trying to reach? The more specific, the better your content will lan
 - **Who do you NOT want to attract?** _Wrong-fit clients, industries, or types of people. Be
   blunt._
 
-#### Section 3 — Your voice and vibe
+#### Step 2 — What you sell
 
-_This helps us write content that sounds like YOU, not a robot._
+- **What do you sell, and to whom?**
 
-- **How would your best friend describe you?** _e.g. "Direct, a little nerdy, makes everything
-  sound simple."_
-- **Pick 3–5 words for how you want to come across.** _e.g. approachable, expert, bold,
-  thoughtful, no-BS, warm, funny, serious._
-- **Communication style** — checkboxes, tick all that apply:
-  - I swear sometimes and that's fine
-  - Casual and conversational
-  - Authority-led
-  - Funny / witty when possible
-  - Storytelling and personal
-  - I use emojis
-- **Any words or phrases you always use?** _Catchphrases, industry terms you love, words that
-  feel like "you."_
-- **Any words or phrases you HATE?** _Things that make you cringe. Words that feel fake or
-  overused._
-- **Name 2–3 LinkedIn creators you like, and why** — **plus a post or two from each.**
-- **Anything you absolutely do NOT want to post about?** _Off-limits topics, personal stuff,
-  politics, etc._
+Not in the operator's current document, and needed: the R3 engine's **Revenue** pillar has
+nothing to aim at without it.
 
-> **Ask for the creators' actual posts, not just their names.** The operator's document asks
-> only for names and profile links. A profile link gives the system nothing it can read — we
-> need the text, stored as `reference_post`. This is the one place the platform should ask for
-> more than the document does.
-
-#### Section 4 — Goals and success
+#### Step 3 — Goals
 
 _What does winning look like for you?_
 
@@ -889,35 +883,59 @@ _What does winning look like for you?_
 - **What's the #1 thing you want LinkedIn to do for you?** _e.g. get leads, build authority,
   grow network, recruit talent, get speaking gigs._
 - **How will you know this is working? What does success look like in 90 days?**
-- **Are there specific people you want to connect with?** _Names, companies, types of people._
-- **Are there LinkedIn groups, events or communities you're part of?**
-- **How much time can you realistically spend on LinkedIn each week?** _Be honest. 15 min/day?
-  30 min? 1 hour?_
 
-> **The operator's document also asks "any specific metrics you care about?" — leave it out.**
+> The operator's document also asks **"any specific metrics you care about?" — leave it out.**
 > Post analytics is out of scope, and `r_member_postAnalytics` is partner-gated so it cannot
-> come back later. Asking a client which numbers matter to them and then never reporting one is
-> a promise the product cannot keep. The 90-day success question already captures the intent.
+> come back later. Asking which numbers matter and then never reporting one is a promise the
+> product cannot keep. The 90-day question already captures the intent.
 
-#### Section 5 — The offer
+#### Step 4 — Guardrails
 
-- **What do you sell, and to whom?**
+- **Any words or phrases you HATE?** _Things that make you cringe. Words that feel fake or
+  overused._
+- **Anything you absolutely do NOT want to post about?** _Off-limits topics, personal stuff,
+  politics, etc._
 
-Not in the operator's current document, and needed: the R3 engine's **Revenue** pillar has
-nothing to aim at without it.
+These two feed the Voice Card's banned list directly, which is why they are in the form rather
+than on the call.
 
-#### The uploads
+#### Step 5 — Logistics and uploads
 
+- **What's the best way to reach you?** _Slack, email, text, WhatsApp, etc._
 - **Your own past posts — 5 to 10. Required.**
-- Posts from the creators you admire — optional, stored separately.
+- **Posts from creators you admire — optional.** Ask for the posts, not just names.
 
-> **This is the most important input in the system and the operator's document does not ask for
-> it at all.** The gold set is built only from the client's own posts. Without them the Voice
-> Card is guessing, and the voice-match score in Phase 6 has nothing to measure against. Make it
-> required, and say why on the form: _"These teach the system how you actually write."_
+The operator's document also asks where to share drafts for review — **drop it.** The answer is
+now "in Renegade", and asking undermines the product.
 
-Save the answers as one `source_documents` row with `type: 'questionnaire'`, the answers as JSON
-in `content`. Mark the token used in the same request.
+> **The past-posts upload is the most important input in the system, and the operator's document
+> does not ask for it at all.** The gold set is built only from the client's own posts. Without
+> them the Voice Card is guessing and the Phase 6 voice score has nothing to measure against.
+> Make it required, and say why on the form: _"These teach the system how you actually write."_
+
+> **Ask for the admired creators' actual posts, not just their names.** A profile link gives the
+> system nothing it can read. Stored as `reference_post`, never in the gold set.
+
+> **Do not collect LinkedIn credentials.** The operator's current document asks for them, for
+> clients who also buy account management. That is a different service and out of scope here —
+> see `CLAUDE.md`. Publishing in FYP-2 happens through the member's own OAuth grant, so we never
+> need, ask for, or store a password.
+
+#### Cold start
+
+A client with fewer than five past posts has no gold set, so the Voice Card leans on
+self-description — which this form no longer collects. For them:
+
+- Make the admired-creators upload prominent rather than optional
+- Generate the Voice Card **after** the first interview instead of before
+
+That second one is an ordering choice in Phase 3, not a scope change.
+
+#### Saving
+
+Save each step as the client advances, so a half-finished form survives a closed tab. On
+submit, write one `source_documents` row with `type: 'questionnaire'` and the answers as JSON in
+`content`, and mark the token used in the same request.
 
 ### 8.3 Booking the first interview
 
@@ -1086,7 +1104,9 @@ Step 10 is why the token is single use. Step 11 is Phase 1's guarantee still hol
 - [ ] Under-$5,000 applications are flagged, not auto-rejected
 - [ ] Accepting creates the client, the token, and shows the link on screen
 - [ ] The onboarding form works with no login, and refuses used or expired tokens
-- [ ] The questionnaire uses the operator's own wording, and does not re-ask what `/apply` captured
+- [ ] The questionnaire is a **stepped form**, and a half-finished one survives a closed tab
+- [ ] It uses the operator's own wording, and does not re-ask what `/apply` captured
+- [ ] Only the pre-interview questions are asked; the voice questions are left for the call
 - [ ] Past posts are **required**; reference posts ask for the posts, not just creator names
 - [ ] Past posts and reference posts are stored with different `type` values
 - [ ] The confirmation screen shows the scheduling link, and confirming stamps `interview_booked_at`
