@@ -39,6 +39,100 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          answers: Json
+          company: string | null
+          converted_client_id: string | null
+          created_at: string
+          email: string
+          fit_reasoning: string | null
+          fit_score: number | null
+          full_name: string
+          id: string
+          linkedin_url: string | null
+          monthly_revenue_usd: number | null
+          scored_at: string | null
+          status: string
+        }
+        Insert: {
+          answers?: Json
+          company?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          email: string
+          fit_reasoning?: string | null
+          fit_score?: number | null
+          full_name: string
+          id?: string
+          linkedin_url?: string | null
+          monthly_revenue_usd?: number | null
+          scored_at?: string | null
+          status?: string
+        }
+        Update: {
+          answers?: Json
+          company?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          email?: string
+          fit_reasoning?: string | null
+          fit_score?: number | null
+          full_name?: string
+          id?: string
+          linkedin_url?: string | null
+          monthly_revenue_usd?: number | null
+          scored_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_converted_client_id_fkey"
+            columns: ["converted_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_kits: {
+        Row: {
+          accent_color: string | null
+          client_id: string
+          font_name: string | null
+          logo_path: string | null
+          notes: string | null
+          primary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          client_id: string
+          font_name?: string | null
+          logo_path?: string | null
+          notes?: string | null
+          primary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          client_id?: string
+          font_name?: string | null
+          logo_path?: string | null
+          notes?: string | null
+          primary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_kits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_users: {
         Row: {
           client_id: string
@@ -73,6 +167,7 @@ export type Database = {
           company: string | null
           created_at: string
           id: string
+          interview_booked_at: string | null
           name: string
           operator_id: string
           status: string
@@ -81,6 +176,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           id?: string
+          interview_booked_at?: string | null
           name: string
           operator_id: string
           status?: string
@@ -89,6 +185,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           id?: string
+          interview_booked_at?: string | null
           name?: string
           operator_id?: string
           status?: string
@@ -103,26 +200,99 @@ export type Database = {
           },
         ]
       }
+      onboarding_tokens: {
+        Row: {
+          client_id: string
+          created_at: string
+          expires_at: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          expires_at: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          expires_at?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_tokens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operators: {
         Row: {
+          booking_url: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
         }
         Insert: {
+          booking_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
         }
         Update: {
+          booking_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
         }
         Relationships: []
+      }
+      source_documents: {
+        Row: {
+          client_id: string
+          content: string | null
+          created_at: string
+          embedding: string | null
+          id: string
+          storage_path: string | null
+          type: string
+        }
+        Insert: {
+          client_id: string
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          storage_path?: string | null
+          type: string
+        }
+        Update: {
+          client_id?: string
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          storage_path?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

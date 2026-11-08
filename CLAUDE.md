@@ -278,25 +278,54 @@ operator as feedback, and the operator decides whether to regenerate.
 
 ## Onboarding questionnaire
 
-Based on the operator's existing client questionnaire. Four sections:
+Based on the operator's existing client questionnaire, **trimmed on purpose**. A stepped
+form, one section per screen, progress saved as they go.
+
+**The form asks only what the system needs before the first interview.** Everything else
+is asked on the call. Full question wording lives in `docs/PHASE-2-BUILD.md` section 8.2.
 
 1. **Audience** — dream client, job titles, industry, company size, **who they do NOT
    want to attract**
-2. **Voice & vibe** — how a close friend would describe them, 3–5 words for how they
-   want to come across, communication-style checkboxes (swearing, casual, authority-led,
-   funny, storytelling, emoji), words they always use, words they hate, creators they
-   admire, topics that are off limits
-3. **Goals** — why now, the one thing LinkedIn should do for them, what success looks
-   like in 90 days, dream connections, time available per week
-4. **The offer** — what they sell and to whom
+2. **The offer** — what they sell and to whom
+3. **Goals** — why now / what changed, the one thing LinkedIn should do for them, what
+   success looks like in 90 days
+4. **Guardrails** — words and phrases they hate, topics that are off limits
+5. **Logistics** — best way to reach them
 
-Plus a required **past-posts upload** (5–10 posts).
+Plus a required **past-posts upload** (5–10 posts), and an optional upload of posts by
+creators they admire.
+
+**Asked on the call, not in the form:** how a close friend would describe them, the 3–5
+words for how they want to come across, the communication-style checkboxes, words they
+always use, which creators they admire and why, dream connections, groups and
+communities, time available per week.
+
+**Why those moved.** Asking someone to describe their own voice _in writing_ returns the
+voice they aspire to, not the one they have — "professional yet approachable" every time.
+On a call you hear the real one. This is the product's whole premise applied to its own
+intake form.
+
+**Why the guardrails did not move.** "Words you hate" and "topics off limits" look like
+voice questions but are constraints, and people answer those concretely in writing. They
+also have to exist before anything is generated: the banned list is a hard rule in the
+Voice Card, and an off-limits topic discovered during the call is one the system may have
+already drafted around.
+
+**Cold-start caveat.** A client with fewer than five past posts has no gold set, so the
+Voice Card leans on self-description — exactly what the form no longer collects. For
+those clients, push the admired-creators upload harder and generate the Voice Card
+**after** the first interview rather than before.
 
 Do **not** collect LinkedIn credentials. That belongs to a separate account-management
 service and is out of scope here.
 
+**Do not ask for anything the application already captured** — name, email, company,
+LinkedIn URL, revenue. Re-asking signals the first form went nowhere.
+
 Keep the questionnaire's tone informal — "there are no wrong answers, write however you
-talk." Messy honest answers produce a better voice sketch than polished ones.
+talk." Messy honest answers produce a better voice sketch than polished ones. Tell them
+they can skip a question and cover it on the call; a long form with no escape hatch gets
+abandoned at the first hard one.
 
 ---
 
