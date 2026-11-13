@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /** Pages a signed-out visitor is allowed to open. */
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/auth']
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/auth', '/onboarding', '/api/onboarding']
 
 /**
  * Refreshes the auth session on every request, and sends signed-out visitors
