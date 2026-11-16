@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 /**
  * Placeholder landing page for Phase 0.
  *
@@ -46,6 +48,16 @@ export default function Home() {
       <header className="flex items-baseline gap-3 py-10">
         <span className="font-display text-xl font-semibold tracking-tight">Renegade</span>
         <span className="text-brand font-mono text-[10px] tracking-[0.18em] uppercase">FYP-1</span>
+
+        {/* Operator sign-in, kept quiet and to one side. There is deliberately
+            no link to /signup: the product story is one operator with many
+            clients, so account creation is not something the site advertises. */}
+        <Link
+          href="/login"
+          className="text-muted-foreground hover:text-foreground ml-auto font-mono text-[11px] tracking-[0.1em] uppercase transition-colors"
+        >
+          Sign in
+        </Link>
       </header>
 
       {/* ── thesis ───────────────────────────────────────────────────────── */}
@@ -60,6 +72,17 @@ export default function Home() {
           that transcript into LinkedIn posts written in the founder&rsquo;s own voice, built only
           from things they actually said. Two people approve every post before it goes anywhere.
         </p>
+
+        {/* The front door. Everything a prospective client does starts here:
+            apply, get accepted, complete onboarding, book the interview. */}
+        <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Button asChild size="lg">
+            <Link href="/apply">Apply to work with us</Link>
+          </Button>
+          <span className="text-muted-foreground text-sm">
+            Takes about five minutes. We reply either way.
+          </span>
+        </div>
       </section>
 
       {/* ── the transformation ───────────────────────────────────────────── */}
