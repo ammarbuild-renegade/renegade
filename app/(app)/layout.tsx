@@ -44,6 +44,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             Applications
           </Link>
+          <Link
+            href="/settings"
+            className="hover:bg-muted text-foreground rounded-md px-2 py-1.5 text-sm transition-colors"
+          >
+            Settings
+          </Link>
         </nav>
 
         <div className="text-muted-foreground mb-2 px-2 font-mono text-[10px] tracking-[0.15em] uppercase">

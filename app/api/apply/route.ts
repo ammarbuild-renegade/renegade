@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { scoreApplication } from '@/lib/scoring/fit'
+import { scoreApplication, markScoringFailed } from '@/lib/scoring/fit'
 
 const Application = z.object({
   full_name: z.string().trim().min(1).max(120),
@@ -33,11 +33,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Could not save your application.' }, { status: 500 })
   }
 
-  // Step two: score. Deliberately after the insert and deliberately not awaited
-  // for the response - if it throws, the application is already safe and the
-  // operator sees it unscored.
-  scoreApplication(application.id).catch((e) => {
-    console.error('[apply] scoring failed for', application.id, e)
+  // Step two: score, after the response has been sent.
+  //
+  // This used to be a bare un-awaited promise. That silently did nothing in
+  // practice: once the response is returned the platform is free to freeze or
+  // terminate the function, so the scoring call was killed before it finished
+  // and every application sat with scored_at null forever. `after` is the
+  // supported way to run work past the response - the runtime keeps the
+  // invocation alive for it.
+  //
+  // The applicant still waits for nothing; only the operator's score arrives
+  // a few seconds later.
+  after(async () => {
+    try {
+      await scoreApplication(application.id)
+    } catch (e) {
+      console.error('[apply] scoring failed for', application.id, e)
+      // Record the attempt so the queue can offer a retry instead of showing
+      // the application as merely "not scored yet".
+      await markScoringFailed(application.id).catch(() => {})
+    }
   })
 
   return NextResponse.json({ ok: true })
