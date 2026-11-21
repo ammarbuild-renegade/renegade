@@ -1,8 +1,18 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { z } from 'zod'
-import { generateStructured } from '@/lib/ai/provider'
+import { generateStructured, type Provider } from '@/lib/ai/provider'
 import { createAdminClient } from '@/lib/supabase/admin'
+
+/**
+ * Which model scores applications. Configuration, not code - CLAUDE.md.
+ *
+ * CLAUDE.md routes structured extraction to Claude, and that remains the
+ * intended setting. It is currently openai because the project's Anthropic
+ * account has no credit, which made every application land unscored. Set
+ * SCORING_PROVIDER=claude to put it back; nothing else has to change.
+ */
+const SCORING_PROVIDER: Provider = process.env.SCORING_PROVIDER === 'claude' ? 'claude' : 'openai'
 
 const FitScore = z.object({
   score: z.number().int().min(0).max(100),
@@ -45,7 +55,7 @@ export async function scoreApplication(applicationId: string): Promise<FitScore>
   const system = await loadPrompt('fit-scoring')
 
   const { data } = await generateStructured(
-    'claude',
+    SCORING_PROVIDER,
     {
       system,
       prompt: JSON.stringify(application, null, 2),

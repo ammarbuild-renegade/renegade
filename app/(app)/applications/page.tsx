@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { rejectApplication, rescoreApplication } from './actions'
+import { AcceptButton } from './accept-button'
 
 export default async function ApplicationsPage() {
   const supabase = await createClient()
@@ -82,7 +83,9 @@ export default async function ApplicationsPage() {
               <p className="text-muted-foreground mt-2 text-sm">{a.fit_reasoning}</p>
             ) : null}
 
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <AcceptButton id={a.id} name={a.full_name} />
+
               {a.fit_score == null && a.scored_at != null ? (
                 <form action={rescoreApplication.bind(null, a.id)}>
                   <Button type="submit" variant="outline" size="sm">
