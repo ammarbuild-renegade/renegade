@@ -4,13 +4,36 @@ import { Button } from '@/components/ui/button'
 import { rejectApplication, rescoreApplication } from './actions'
 import { AcceptButton } from './accept-button'
 
+/**
+ * The questions as the applicant saw them, so the operator reads them the same
+ * way. Anything not listed falls back to a tidied-up version of its key, so a
+ * new question added to the form still shows rather than silently vanishing.
+ */
+const ANSWER_LABELS: Record<string, string> = {
+  goal: 'What is the #1 thing you want LinkedIn to do for you?',
+  about: 'Tell us about your work — who do you help, and how?',
+  website: 'Company website',
+}
+
+/** `answers` is jsonb, so it arrives loosely typed. Keep only usable strings. */
+function answerEntries(answers: unknown): [string, string][] {
+  if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return []
+  return Object.entries(answers as Record<string, unknown>).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].trim() !== ''
+  )
+}
+
+function labelFor(key: string) {
+  return ANSWER_LABELS[key] ?? key.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+}
+
 export default async function ApplicationsPage() {
   const supabase = await createClient()
 
   const { data: applications, error } = await supabase
     .from('applications')
     .select(
-      'id, full_name, email, company, monthly_revenue_usd, fit_score, fit_reasoning, scored_at, status, created_at'
+      'id, full_name, email, company, linkedin_url, monthly_revenue_usd, answers, fit_score, fit_reasoning, scored_at, status, created_at'
     )
     .eq('status', 'new')
     .order('fit_score', { ascending: false, nullsFirst: false })
@@ -53,6 +76,16 @@ export default async function ApplicationsPage() {
                 <div className="text-muted-foreground text-sm">
                   {a.company ?? 'No company'} · {a.email}
                 </div>
+                {a.linkedin_url ? (
+                  <a
+                    href={a.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand text-sm hover:underline"
+                  >
+                    View their LinkedIn profile
+                  </a>
+                ) : null}
                 <div className="text-muted-foreground text-sm">
                   {a.monthly_revenue_usd != null
                     ? `$${a.monthly_revenue_usd.toLocaleString()} / month`
@@ -80,16 +113,42 @@ export default async function ApplicationsPage() {
             </div>
 
             {a.fit_score != null && a.fit_reasoning ? (
-              <p className="text-muted-foreground mt-2 text-sm">{a.fit_reasoning}</p>
+              <p className="border-border text-muted-foreground mt-3 border-l-2 pl-3 text-sm">
+                {a.fit_reasoning}
+              </p>
             ) : null}
+
+            {/* What the applicant actually wrote. Without this the operator is
+                deciding on a revenue figure alone, which is the one number on
+                the form nobody can verify. */}
+            {answerEntries(a.answers).length > 0 ? (
+              <dl className="mt-4 flex flex-col gap-3">
+                {answerEntries(a.answers).map(([key, value]) => (
+                  <div key={key}>
+                    <dt className="text-muted-foreground font-mono text-[10px] tracking-[0.12em] uppercase">
+                      {labelFor(key)}
+                    </dt>
+                    <dd className="mt-1 text-sm whitespace-pre-wrap">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="text-muted-foreground mt-4 text-sm italic">
+                This applicant left the written questions blank.
+              </p>
+            )}
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <AcceptButton id={a.id} name={a.full_name} />
 
-              {a.fit_score == null && a.scored_at != null ? (
+              {/* Offered whenever there is no score, not only after a failure.
+                  An application that was never attempted - one submitted while
+                  scoring was broken, say - would otherwise sit on "Not scored
+                  yet" forever with no way to trigger it. */}
+              {a.fit_score == null ? (
                 <form action={rescoreApplication.bind(null, a.id)}>
                   <Button type="submit" variant="outline" size="sm">
-                    Retry scoring
+                    {a.scored_at == null ? 'Score now' : 'Retry scoring'}
                   </Button>
                 </form>
               ) : null}
