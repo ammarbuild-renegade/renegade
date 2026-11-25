@@ -5,6 +5,37 @@ in month six nobody remembers why something was decided in month one.
 
 ---
 
+## 2026-11-25 — Deleting a client leaves its uploaded files behind. Known, deferred.
+
+Found while clearing test data before a demo. Deleting a client removes every row that
+references it — `onboarding_tokens`, `source_documents`, `brand_kits` all cascade correctly —
+but **the files themselves stay in the storage bucket**, because Postgres foreign keys do not
+reach into Supabase Storage. The rows that pointed at them are gone, so nothing in the
+application can find them again. They are orphaned, not deleted.
+
+Two test clients left two files behind this way. They were removed by hand through the storage
+API, which is the only thing that can remove them.
+
+**Why it is not fixed yet.** Deleting a client is currently something that happens through the
+Supabase dashboard or a SQL console during development, not through the product — there is no
+delete action in the UI for anyone to get wrong. The bug has no user-facing path today.
+
+**Why it must be fixed before there is one.** The moment a delete button exists, every deleted
+client silently leaves its material in the bucket. That is a privacy problem rather than a
+tidiness one: the files are a client's own posts and brand material, retained after their
+record was removed, with nothing left in the database to say whose they were or that they
+should go.
+
+**The fix, when the delete action is built:** remove the storage objects under
+`<client_id>/` first, and only then delete the row. In that order — a failed storage delete
+must leave the client intact rather than produce the orphan it was meant to prevent. The
+reverse order is the version that looks like it works.
+
+A nightly sweep for folders whose client no longer exists would be a reasonable safety net,
+but it is a second line of defence, not the fix.
+
+---
+
 ## 2026-11-07 — `applications` has no `client_id`. Deliberate exception to rule 1.
 
 Rule 1 in `CLAUDE.md` says every table carries `client_id` and no query runs without client
